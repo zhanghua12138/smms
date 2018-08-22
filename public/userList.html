@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>帐户管理</title>
+    <link rel="stylesheet" type="text/css" href="styles/reset.css" />
+    <link rel="stylesheet" type="text/css" href="./styles/element-ui.css" />
+    <link rel="stylesheet" type="text/css" href="styles/index.css" />
+    <script src="/users/checkIsLogin"></script>
+</head>
+
+<body>
+    <div id="app">
+		<el-header>
+            <h2>欢迎您,{{realname}}</h2>
+			<p>查看所有管理员账号</p>
+		</el-header>
+		<el-main>
+			<el-card class="box-card">
+				<div slot="header">
+					<span class="system">帐号管理</span>
+				</div>
+				<div class="text item">
+					<template>
+                        <el-table
+                                ref="multipleTable"
+                                :data="tableData3"
+                                tooltip-effect="dark"
+                                style="width: 100%"
+                                @selection-change="handleSelectionChange">
+                            <el-table-column
+                                    prop="id"
+                                    type="selection"
+                                    width="55">
+                            </el-table-column>
+                            <el-table-column
+                                    label="账号">
+                                <template slot-scope="scope">{{ scope.row.username }}</template>
+                            </el-table-column>
+                            <el-table-column
+                                    prop="realname"
+                                    label="姓名">
+                            </el-table-column>
+                            <el-table-column
+                                prop="createdate"
+                                :formatter="dateFormat"
+                                label="日期">
+                            </el-table-column>
+                            <el-table-column
+                                    prop="usergroup"
+                                    label="用户组"
+                                    show-overflow-tooltip>
+                            </el-table-column>
+                            <el-table-column label="操作">
+                                <template slot-scope="scope">
+                                    <el-button
+                                            type="primary" plain
+                                            size="mini"
+                                            @click="handleEdit(scope.$index, scope.row)"><span class="el-icon-edit-outline"></span> 编辑</el-button>
+                                    <el-button
+                                            size="mini"
+                                            type="danger" plain
+                                            @click="handleDelete(scope.$index, scope.row)"><span class="el-icon-delete"></span> 删除</el-button>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                        <div style="margin-top: 20px">
+                            <el-pagination
+                                    background
+                                    layout="total, sizes, prev, pager, next, jumper"
+                                    @size-change="handleSizeChange"
+                                    @current-change="handleCurrentChange"
+                                    :current-page="currentPage"
+                                    :page-sizes="[1, 2, 3, 4, 5, 10, 15, 20]"
+                                    :page-size="pagesize"
+                                    :total="total">
+                            </el-pagination>
+                        </div>
+                        <div style="margin-top: 20px">
+                            <el-button @click="delSelected()">删除全选</el-button>
+                            <el-button @click="toggleSelection()">取消选择</el-button>
+                        </div>
+                    </template>
+				</div>
+			</el-card>
+		</el-main>
+    </div>
+</body>
+<script src="./scripts/vue.js" type="text/javascript"></script>
+<script src="./scripts/jquery-2.1.0.js" type="text/javascript"></script>
+<script src="./scripts/moment.min.js" type="text/javascript"></script>
+<script src="./scripts/element-ui.js" type="text/javascript"></script>
+<script type="text/javascript">
+    new Vue({
+        el: "#app",
+        data() {
+            return {
+                realname:"",
+                currentPage: 1,//当前是第几页
+                total:1,//数据库总共的数据条数
+                pagesize:4,//一页显示多少条数据
+                tableData3: [
+                ],//用户的数据
+                multipleSelection: []
+            };
+        },
+        mounted:function () {
+            //视图组件等加载完毕后调用查询数据的方法
+            this.getDataAjax();
+            var that = this;
+            //获取登录名字
+            $.get("/users/getRealname",function (result) {
+                that.realname = result.realname;
+            })
+        },
+        methods: {
+            //后台查询数据
+            getDataAjax:function() {
+                var that = this;
+                //后台查询时需要把当前的页码和每页需要显示多少数据传入后台
+                var pagedata ={
+                    currentPage: that.currentPage,
+                    pagesize:that.pagesize
+                }
+                $.get("/users/list",pagedata,function (results) {
+                    that.total = results.total;//后台查询到的数据总数
+                    that.tableData3 = results.userData;
+                });
+            },
+            //格式化日期
+            dateFormat:function(row, column) {
+                var date = row[column.property];
+                if (date == undefined) {
+                    return "";
+                }
+                //moment is not defined 必须引入momentjs库文件
+                //return moment(date).format("YYYY-MM-DD HH:mm:ss");
+                return moment(date).format("YYYY-MM-DD");
+            },
+			//全选和取消全选
+            toggleSelection(rows) {
+                if (rows) {
+                    rows.forEach(row => {
+                        this.$refs.multipleTable.toggleRowSelection(row);
+                    });
+                } else {
+                    this.$refs.multipleTable.clearSelection();
+                }
+            },
+            handleSelectionChange(val) {
+                this.multipleSelection = val;
+            },
+            delSelected(){
+                var that = this;
+                var selectID = [];
+                for(let x of this.multipleSelection){
+                    selectID.push(x.id);
+                };
+//                console.log(selectID);
+                if(confirm("确认删除选中吗?")){
+                    $.get("/users/delSelect",{needID:selectID.join()},function (result) {
+                        if(result.isSuccess){
+                            alert(result.msg);
+                            that.getDataAjax();
+                        }else{
+                            alert(result.msg);
+                        }
+                    })
+                }else{
+                    return false;
+                }
+
+            },
+            //编辑和修改
+            handleEdit(index, row) {
+                var id = row.id;
+                $.get("/users/toedit",{id},function (result) {
+                    if(result){
+                        location.href = "userEdit.html"
+                    }
+                })
+            },
+            handleDelete(index, row) {
+                var that = this;
+                var id = row.id;
+                if(confirm("确认删除吗?")){
+                    $.get("/users/del",{id},function (result) {
+                        if (result.success){
+                            //删除成功调用查询数据的ajax方法
+                            that.getDataAjax();
+                        }else{
+                            alert("删除失败");
+                        }
+                    });
+                }
+
+            },
+            //分页改变页码
+            handleSizeChange(val) {
+                this.pagesize = val;
+                this.getDataAjax();
+//                console.log(`每页 ${val} 条`);
+            },
+            handleCurrentChange(val) {
+                this.currentPage = val;
+                this.getDataAjax();
+//                console.log(`当前页: ${val}`);
+            }
+        }
+    })
+</script>
+
+</html>

@@ -1,0 +1,39 @@
+
+.text {
+    font-size: 14px;
+  }
+
+.item {
+margin-bottom: 18px;
+}
+
+.clearfix:before,
+.clearfix:after {
+display: table;
+content: "";
+}
+.clearfix:after {
+clear: both
+}
+
+.box-card {
+width: 480px;
+}
+body{
+	background: url(../images/body_bg.png);
+}
+#loginBox{
+    height: 300px;
+
+    /* 使用固定定位，利用四周自动拉扯实现 */
+    position: fixed;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    margin: auto;
+}
+#loginBox .login-herder{
+	font-size: 24px;
+	font-weight: bold;
+}

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>帐户管理-添加用户</title>
+    <link rel="stylesheet" type="text/css" href="styles/reset.css" />
+    <link rel="stylesheet" type="text/css" href="./styles/element-ui.css" />
+    <link rel="stylesheet" type="text/css" href="styles/index.css" />
+	<script src="/users/checkIsLogin"></script>
+</head>
+
+<body>
+    <div id="app">
+		<el-header>
+			<h2>欢迎您,{{realname}}</h2>
+			<p>查看所有管理员账号</p>
+		</el-header>
+		<el-main>
+			<el-card class="box-card">
+				<div slot="header">
+					<span class="system">添加管理员</span>
+				</div>
+				<div class="text item">
+					<el-form :model="ruleForm2" status-icon :rules="rules2" ref="ruleForm2" label-width="100px" class="demo-ruleForm" :label-position="labelPosition">
+						<el-form-item label="用户名" prop="username">
+							<el-input type="text" v-model="ruleForm2.username" auto-complete="off"></el-input>
+						</el-form-item>
+						<el-form-item label="密码" prop="pass">
+							<el-input type="password" v-model="ruleForm2.pass" auto-complete="off"></el-input>
+						</el-form-item>
+						<el-form-item label="确认密码" prop="checkPass">
+							<el-input type="password" v-model="ruleForm2.checkPass" auto-complete="off"></el-input>
+						</el-form-item>
+						<el-form-item label="真实姓名" prop="realname">
+							<el-input type="text" v-model="ruleForm2.realname" auto-complete="off"></el-input>
+						</el-form-item>
+						<el-form-item label="选择用户组" prop="userlist">
+							<el-select v-model="ruleForm2.userlist" placeholder="请选择用户组">
+								<el-option label="旅店老板" value="旅店老板"></el-option>
+								<el-option label="法师" value="法师"></el-option>
+								<el-option label="战士" value="战士"></el-option>
+								<el-option label="牧师" value="牧师"></el-option>
+								<el-option label="萨满" value="萨满"></el-option>
+								<el-option label="术士" value="术士"></el-option>
+								<el-option label="盗贼" value="盗贼"></el-option>
+								<el-option label="圣骑士" value="圣骑士"></el-option>
+								<el-option label="德鲁伊" value="德鲁伊"></el-option>
+								<el-option label="猎人" value="猎人"></el-option>
+							</el-select>
+						</el-form-item>
+						<el-form-item>
+							<el-button type="success" @click="submitForm('ruleForm2')">提交</el-button>
+							<el-button @click="resetForm('ruleForm2')">重置</el-button>
+						</el-form-item>
+					</el-form>
+				</div>
+			</el-card>
+		</el-main>
+    </div>
+</body>
+<script src="./scripts/vue.js" type="text/javascript"></script>
+<script src="./scripts/jquery-2.1.0.js"></script>
+<script src="./scripts/element-ui.js" type="text/javascript"></script>
+<script type="text/javascript">
+    new Vue({
+        el: "#app",
+        data() {
+            var validatePass = (rule, value, callback) => {
+                if (value === '') {
+                    callback(new Error('请输入密码'));
+                } else {
+                    if (this.ruleForm2.checkPass !== '') {
+                        this.$refs.ruleForm2.validateField('checkPass');
+                    }
+                    callback();
+                }
+            };
+            var validatePass2 = (rule, value, callback) => {
+                if (value === '') {
+                    callback(new Error('请再次输入密码'));
+                } else if (value !== this.ruleForm2.pass) {
+                    callback(new Error('两次输入密码不一致!'));
+                } else {
+                    callback();
+                }
+            };
+            return {
+                realname:"",
+                labelPosition: 'right',
+                ruleForm2: {
+                    pass: '',
+                    checkPass: '',
+                    username: '',
+                    realname:'',
+					userlist:''
+                },
+                rules2: {
+                    username: [{
+                            required: true,
+                            message: '请输入用户名',
+                            trigger: 'blur'
+                        }, //失去焦点就触发
+                        {
+                            min: 2,
+                            max: 10,
+                            message: '用户名在2到10位之间',
+                            trigger: 'change'
+                        }
+                    ],
+                    pass: [{
+                            required: true,
+                            message: '请输入密码',
+                            trigger: 'blur'
+                        },
+                        {
+                            validator: validatePass,
+                            trigger: 'blur'
+                        },
+                        {
+                            min: 6,
+                            max: 20,
+                            message: '密码在6到20位之间',
+                            trigger: 'change'
+                        }
+                    ],
+                    checkPass: [{
+                            required: true,
+                            message: '请再次输入密码',
+                            trigger: 'blur'
+                        },
+                        {
+                            validator: validatePass2,
+                            trigger: 'blur'
+                        }
+                    ],
+					userlist:[{
+						required: true,
+						message: '请选择用户组',
+						trigger: 'change'
+					}]
+                }
+            };
+        },
+        mounted:function () {
+            var that = this;
+            //获取登录名字
+            $.get("/users/getRealname",function (result) {
+                that.realname = result.realname;
+            })
+        },
+        methods: {
+            submitForm(formName) {
+                var _this = this;
+                var userDate = {
+                    username: this.ruleForm2.username,
+                    password: this.ruleForm2.pass,
+                    realname:this.ruleForm2.realname,
+                    usergroup:this.ruleForm2.userlist
+				}
+                this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                        $.post("/users/add",userDate,function (result) {
+							if(result.success){
+							    if(confirm(result.message+"要继续添加吗?")){
+							        //继续添加需要清空当前表单
+                                    _this.ruleForm2.username='';
+                                    _this.ruleForm2.pass='';
+                                    _this.ruleForm2.checkPass='';
+                                    _this.ruleForm2.realname='';
+                                    _this.ruleForm2.userlist='';
+								}else{
+							        //不继续就跳转到用户列表页面
+                                    location.href="userList.html";
+								}
+							}else{
+                                alert(result.msg);
+                                return false;
+							}
+                        })
+                    } else {
+                        console.log('error submit!!');
+                        return false;
+                    }
+                });
+            },
+            resetForm(formName) {
+                this.$refs[formName].resetFields();
+            }
+        }
+    })
+</script>
+
+</html>

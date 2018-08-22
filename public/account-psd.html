@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>帐户管理-修改密码</title>
+    <link rel="stylesheet" type="text/css" href="styles/reset.css" />
+    <link rel="stylesheet" type="text/css" href="./styles/element-ui.css" />
+    <link rel="stylesheet" type="text/css" href="styles/index.css" />
+	<script src="/users/checkIsLogin"></script>
+</head>
+
+<body>
+    <div id="app">
+		<el-header>
+			<h2>欢迎您,{{realname}}</h2>
+			<p>修改你的密码</p>
+		</el-header>
+		<el-main>
+			<el-card class="box-card">
+				<div slot="header">
+					<span class="system">修改密码</span>
+				</div>
+				<div class="text item">
+					<el-form :model="ruleForm2" status-icon :rules="rules2" ref="ruleForm2" label-width="100px" class="demo-ruleForm" :label-position="labelPosition">
+						<el-form-item label="原密码" prop="oldpsd">
+							<el-input type="password" v-model="ruleForm2.oldpsd" auto-complete="off"></el-input>
+						</el-form-item>
+						<el-form-item label="新密码" prop="pass">
+							<el-input type="password" v-model="ruleForm2.pass" auto-complete="off"></el-input>
+						</el-form-item>
+						<el-form-item label="确认密码" prop="checkPass">
+							<el-input type="password" v-model="ruleForm2.checkPass" auto-complete="off"></el-input>
+						</el-form-item>
+						
+						<el-form-item>
+							<el-button type="success" @click="submitForm('ruleForm2')">修改</el-button>
+							<el-button @click="resetForm('ruleForm2')">重置</el-button>
+						</el-form-item>
+					</el-form>
+				</div>
+			</el-card>
+		</el-main>
+    </div>
+</body>
+<script src="./scripts/vue.js" type="text/javascript"></script>
+<script src="./scripts/jquery-2.1.0.js" type="text/javascript"></script>
+<script src="./scripts/element-ui.js" type="text/javascript"></script>
+<script type="text/javascript">
+    new Vue({
+        el: "#app",
+        data() {
+            var validatePass = (rule, value, callback) => {
+                if (value === '') {
+                    callback(new Error('请输入新密码'));
+                } else {
+                    if (this.ruleForm2.checkPass !== '') {
+                        this.$refs.ruleForm2.validateField('checkPass');
+                    }
+                    callback();
+                }
+            };
+            var validatePass2 = (rule, value, callback) => {
+                if (value === '') {
+                    callback(new Error('请再次输入密码'));
+                } else if (value !== this.ruleForm2.pass) {
+                    callback(new Error('两次输入密码不一致!'));
+                } else {
+                    callback();
+                }
+            };
+            return {
+                realname:"",
+                labelPosition: 'right',
+                ruleForm2: {
+                    pass: '',
+                    checkPass: '',
+                    oldpsd: ''
+                },
+                rules2: {
+                    oldpsd: [{
+                            required: true,
+                            message: '请输入原密码',
+                            trigger: 'blur'
+                        } //失去焦点就触发
+                    ],
+                    pass: [{
+                            required: true,
+                            message: '请输入新密码',
+                            trigger: 'blur'
+                        },
+                        {
+                            validator: validatePass,
+                            trigger: 'blur'
+                        },
+                        {
+                            min: 6,
+                            max: 20,
+                            message: '密码在6到20位之间',
+                            trigger: 'change'
+                        }
+                    ],
+                    checkPass: [{
+                            required: true,
+                            message: '请再次输入密码',
+                            trigger: 'blur'
+                        },
+                        {
+                            validator: validatePass2,
+                            trigger: 'blur'
+                        }
+                    ]
+                }
+            };
+        },
+        mounted:function () {
+            var that = this;
+            //获取登录名字
+            $.get("/users/getRealname",function (result) {
+                that.realname = result.realname;
+            })
+        },
+        methods: {
+            submitForm(formName) {
+                var _this = this;
+                var userDate = {
+                    password: this.ruleForm2.oldpsd,
+                    newpass :this.ruleForm2.pass,
+                }
+                this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                        if(confirm("确认修改你的密码吗?")){
+                            $.post("/users/editPass",userDate,function (result) {
+//                                console.log(result);
+                                if(result.isSucess){
+									alert(result.msg);
+									top.location.href = "login.html";
+                                }else{
+                                    alert(result.msg);
+                                    return false;
+                                }
+                            })
+                        }else{
+
+                        }
+                    } else {
+                        console.log('error submit!!');
+                        return false;
+                    }
+                });
+            },
+            resetForm(formName) {
+                this.$refs[formName].resetFields();
+            }
+        }
+    })
+</script>
+
+</html>

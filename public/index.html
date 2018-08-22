@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>管理首页</title>
+    <link rel="stylesheet" type="text/css" href="styles/reset.css" />
+    <link rel="stylesheet" type="text/css" href="./styles/element-ui.css" />
+    <link rel="stylesheet" type="text/css" href="./styles/index.css" />
+    <script src="/users/checkIsLogin"></script>
+</head>
+<body>
+    <div id="app">
+        <el-container>
+            <el-aside width="230px">
+                <h1>炉石酒馆管理系统</h1>
+                <p>你好,{{realname}}</p>
+                <p><a href="main.html" target="main">管理套牌</a> | <a href="/users/outLogin">退出酒馆</a></p>
+                <el-menu :unique-opened="true" default-active="2" :default-openeds="['8']" class="el-menu-vertical-demo" @open="handleOpen" @close="handleClose">
+                    <el-submenu index="1">
+                        <template slot="title">
+                            <span>分类管理</span>
+                        </template>
+                        <el-menu-item-group>
+                            <el-menu-item index="1-1"><a href="">分类管理</a></el-menu-item>
+                            <el-menu-item index="1-2"><a href="">添加分类</a></el-menu-item>
+                        </el-menu-item-group>
+                    </el-submenu>
+                    <el-submenu index="2">
+                        <template slot="title">
+                            <span>商品管理</span>
+                        </template>
+                        <el-menu-item-group>
+                            <el-menu-item index="2-1"><a href="goodsList.html" target="main">商品管理</a></el-menu-item>
+                            <el-menu-item index="2-2"><a href="productAdd.html" target="main">添加商品</a></el-menu-item>
+                        </el-menu-item-group>
+                    </el-submenu>
+                    <el-submenu index="3">
+                        <template slot="title">
+                            <span>进货管理</span>
+                        </template>
+                        <el-menu-item-group>
+                            <el-menu-item index="3-1"><a href="">库存管理</a></el-menu-item>
+                            <el-menu-item index="3-2"><a href="">添加库存</a></el-menu-item>
+                        </el-menu-item-group>
+                    </el-submenu>
+                    <el-submenu index="4">
+                        <template slot="title">
+                            <span>出货管理</span>
+                        </template>
+                        <el-menu-item-group>
+                            <el-menu-item index="4-1"><a href="">销售列表</a></el-menu-item>
+                            <el-menu-item index="4-2"><a href="">商品出库</a></el-menu-item>
+                            <el-menu-item index="4-3"><a href="">商品退货</a></el-menu-item>
+                        </el-menu-item-group>
+                    </el-submenu>
+                    <el-submenu index="5">
+                        <template slot="title">
+                            <span>统计管理</span>
+                        </template>
+                        <el-menu-item-group>
+                            <el-menu-item index="5-1"><a href="">销售统计</a></el-menu-item>
+                            <el-menu-item index="5-2"><a href="">进货统计</a></el-menu-item>
+                        </el-menu-item-group>
+                    </el-submenu>
+                    <el-submenu index="6">
+                        <template slot="title">
+                            <span>帐户管理</span>
+                        </template>
+                        <el-menu-item-group>
+                            <el-menu-item index="6-1"><a href="userList.html" target="main">帐号管理</a></el-menu-item>
+                            <el-menu-item index="6-2"><a href="userAdd.html" target="main">添加帐号</a></el-menu-item>
+                            <el-menu-item index="6-3"><a href="account-psd.html" target="main">密码修改</a></el-menu-item>
+                        </el-menu-item-group>
+                    </el-submenu>
+                    <el-submenu index="7">
+                        <template slot="title">
+                            <span>会员管理</span>
+                        </template>
+                        <el-menu-item-group>
+                            <el-menu-item index="7-1"><a href="">帐号管理</a></el-menu-item>
+                            <el-menu-item index="7-2"><a href="">添加帐号</a></el-menu-item>
+                        </el-menu-item-group>
+                    </el-submenu>
+                    <el-submenu index="8">
+                        <template slot="title">
+                            <span>系统管理</span>
+                        </template>
+                        <el-menu-item-group>
+                            <el-menu-item index="8-1"><a href="main.html" target="main">系统信息</a></el-menu-item>
+                            <el-menu-item index="8-2"><a href="">系统配置</a></el-menu-item>
+                            <el-menu-item index="8-3"><a href="">权限管理</a></el-menu-item>
+							<el-menu-item index="8-3">添加管理组</el-menu-item>
+                        </el-menu-item-group>
+                    </el-submenu>
+                </el-menu>
+            </el-aside>
+			<!--右侧内容-->
+            <el-container>
+				<iframe name="main" src="main.html" width="98%" height="100%"></iframe>
+               <el-footer>@Copyright2018 炉石酒馆管理系统</el-footer>
+            </el-container>
+        </el-container>
+    </div>
+</body>
+<script src="./scripts/vue.js" type="text/javascript"></script>
+<script src="./scripts/jquery-2.1.0.js" type="text/javascript"></script>
+<script src="./scripts/element-ui.js" type="text/javascript"></script>
+<script type="text/javascript">
+    new Vue({
+        el: "#app",
+        data() {
+            return {
+                realname:""
+            };
+        },
+        mounted:function () {
+            var that = this;
+            //获取登录名字
+            $.get("/users/getRealname",function (result) {
+                that.realname = result.realname;
+            })
+        },
+        methods: {
+            handleOpen(key, keyPath) {
+                console.log(key, keyPath);
+            },
+            handleClose(key, keyPath) {
+                console.log(key, keyPath);
+            }
+        }
+    })
+</script>
+
+</html>
